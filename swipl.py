@@ -1,5 +1,6 @@
 from pyswip import Prolog
 from pyswip import Functor
+from pyswip import Variable
 from pyswip.prolog import PrologError
 
 DEFAULT_LIMIT = 10
@@ -12,7 +13,6 @@ def format_value(value):
         output = "{0}{1}{2}".format(value.args[0], value.name, value.args[1])
     else:
         output = "{}".format(value)
-
     return output
 
 def format_result(result):
@@ -20,17 +20,35 @@ def format_result(result):
 
     if len(result) == 0:
         return "false."
-
-    if len(result) == 1 and len(result[0]) == 0:
-        return "true."
-
     output = ""
     for res in result:
-        tmpOutput = []
+        if len(res) == 0:
+            output += "true;\n"
+            continue
+        tmpVarOutput = []
+        vars = {}
         for var in res:
-            tmpOutput.append(var + " = " + format_value(res[var]))
-        output += ", ".join(tmpOutput) + " ;\n"
-    output = output[:-3] + " ."
+            if isinstance(res[var], Variable):
+                id = res[var].chars
+                if id in vars:
+                    vars[id].append(var)
+                else:
+                    vars[id] = [var]
+                    tmpVarOutput.append(res[var])
+            else:
+                tmpVarOutput.append(var + " = " + format_value(res[var]))
+        tmpOutput = []
+        for line in tmpVarOutput:
+            if isinstance(line, Variable):
+                id = line.chars
+                if len(vars[id]) == 1:
+                    tmpOutput.append(vars[id][0] + " = " + id)
+                else:
+                    tmpOutput.append(" = ".join(vars[id]))
+            else:
+                tmpOutput.append(line)
+        output += ", ".join(tmpOutput) + ";\n"
+    output = output[:-2] + "."
 
     return output
 
@@ -43,14 +61,15 @@ def run(code):
     tmp = ""
     isQuery = False
     for line in code.split("\n"):
+        line = line.split("%", 1)[0]
         line = line.strip()
         if line == "" or line[0] == "%":
             continue
 
-        if line[:2] == "?-":
+        if line[:2] == "?-" or line[:2] == ":-":
             isQuery = True
+            isSilent = line[:2] == ":-"
             line = line[2:]
-
         tmp += " " + line
 
         if tmp[-1] == ".":
@@ -76,7 +95,9 @@ def run(code):
             try:
                 if isQuery:
                     result = prolog.query(tmp, maxresult=maxresults)
-                    output.append(format_result(result))
+                    formatted = format_result(result)
+                    if not isSilent:
+                        output.append(formatted)
                     result.close()
                 else:
                     prolog.assertz('(' + tmp + ')')

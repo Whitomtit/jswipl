@@ -53,16 +53,9 @@ Only **pyhton3** is supported (anybody still using python2 should really have up
 ## Installation
 
 1. Install [SWI-Prolog](http://www.swi-prolog.org).
-2. Install jswipl `python3 -m pip install --upgrade --user jswipl`
-3. Change directory to your jupyters kernel directory. Typically `~/.local/share/jupyter/kernels`.
-4. `mkdir jswipl && cd jswipl`
-5. Install kernel spec: `wget https://raw.githubusercontent.com/targodan/jupyter-swi-prolog/master/kernel.json`
-6. Restart jupyter
-7. Profit
-
-## Upgrading
-
-Keeping up to date is as simple as running `python3 -m pip install --upgrade --user jswipl` from time to time.
+2. Clone this repo to `/usr/share/jupyter/kernels/jswipl` or clone it to `~/.local/jupyter/kernels/jswipl` and change `kernel.json` accordingly.
+3. Restart jupyter
+4. Profit
 
 ## Contributing
 

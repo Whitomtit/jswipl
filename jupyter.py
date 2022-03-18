@@ -1,4 +1,4 @@
-from . import swipl
+import swipl
 
 def main():
     from ipykernel.kernelapp import IPKernelApp
@@ -38,3 +38,6 @@ class SwiplKernel(Kernel):
                 'payload': [],
                 'user_expressions': {},
                }
+
+if __name__ == '__main__':
+    main()

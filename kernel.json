@@ -1,6 +1,7 @@
 {
     "argv": [
-        "jswiplkernel",
+        "python",
+        "/usr/share/jupyter/kernels/jswipl/jupyter.py",
         "-f",
         "{connection_file}"
     ],
