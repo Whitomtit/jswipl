@@ -15,20 +15,29 @@ def format_value(value):
         output = "{}".format(value)
     return output
 
-def format_result(result):
+def format_functor(functor):
+    if not isinstance(functor, Functor):
+        return str(functor)
+    return "{}{}{}".format(format_functor(functor.args[0]), str(functor.name), format_functor(functor.args[1]))
+
+def format_result(result, request, maxresults, prolog):
     result = list(result)
 
     if len(result) == 0:
         return "false."
     output = ""
-    for res in result:
+    for i, res in enumerate(result):
         if len(res) == 0:
             output += "true;\n"
             continue
         tmpVarOutput = []
         vars = {}
+        add_run = []
         for var in res:
             if isinstance(res[var], Variable):
+                if not res[var].chars:
+                    add_run.append(var)
+                    continue
                 id = res[var].chars
                 if id in vars:
                     vars[id].append(var)
@@ -42,11 +51,19 @@ def format_result(result):
             if isinstance(line, Variable):
                 id = line.chars
                 if len(vars[id]) == 1:
-                    tmpOutput.append(vars[id][0] + " = " + id)
+                    tmpOutput.append(vars[id][0] + " = " + line)
                 else:
                     tmpOutput.append(" = ".join(vars[id]))
             else:
                 tmpOutput.append(line)
+        if add_run:
+            request = "{}, copy_term([{}], [{}], __ADD_INFO).".format(request, ", ".join(add_run), ", ".join(add_run))
+            add_data = list(prolog.query(request, maxresult=maxresults))[i]['__ADD_INFO']
+            for vi, v in enumerate(add_run):
+                functor = add_data[vi].args[1]
+                sub_functor = functor.args[1]
+                v_res = "{} {} {}".format(v, str(functor.name), format_functor(functor.args[1]))
+                tmpOutput.append(v_res)
         output += ", ".join(tmpOutput) + ";\n"
     output = output[:-2] + "."
 
@@ -95,7 +112,7 @@ def run(code):
             try:
                 if isQuery:
                     result = prolog.query(tmp, maxresult=maxresults)
-                    formatted = format_result(result)
+                    formatted = format_result(result, tmp, maxresults, prolog)
                     if not isSilent:
                         output.append(formatted)
                     result.close()
