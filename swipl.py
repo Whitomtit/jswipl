@@ -51,7 +51,7 @@ def format_result(result, request, maxresults, prolog):
             if isinstance(line, Variable):
                 id = line.chars
                 if len(vars[id]) == 1:
-                    tmpOutput.append(vars[id][0] + " = " + line)
+                    tmpOutput.append(vars[id][0] + " = " + str(line))
                 else:
                     tmpOutput.append(" = ".join(vars[id]))
             else:
